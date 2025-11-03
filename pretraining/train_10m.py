@@ -116,8 +116,8 @@ def setup_training(args, tokenizer):
     if is_main_process():
         wandb.init(
             name=args.name,
-            project="BabyLM-v2",
-            entity="nor-ret"
+            project="gpt-bert-sweeps",
+            entity="lemn-lab"
         )
 
 
