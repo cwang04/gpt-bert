@@ -210,7 +210,8 @@ def prepare_model_and_optimizer(args):
 
 
 def get_batch(dataloader, device, global_step):
-    dataloader._dataset.set_global_step(global_step)
+    if hasattr(dataloader._dataset, "set_global_step"):
+        dataloader._dataset.set_global_step(global_step) # added if to handle when validation set was added
     batch = next(dataloader)
     input_ids, target_ids, attention_mask, mask_p = [t.pin_memory().to(device, non_blocking=True) for t in batch]
     input_ids, target_ids = input_ids.t(), target_ids.t()
