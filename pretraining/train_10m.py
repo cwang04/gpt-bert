@@ -227,11 +227,11 @@ def training_epoch(model, ema_model, train_dataloader, valid_dataloader, optimiz
     num_steps = min(len(train_dataloader), (args.max_steps - global_step) * args.accumulate_steps)
 
     # initialize the dataloader and the metrics
-    train_dataloader = iter(train_dataloader)
+    train_data_iter = iter(train_dataloader)
     total_loss, total_accuracy, total_z_loss, total_mask_p, total_grad_norm = 0.0, 0.0, 0.0, 0.0, 0.0
 
     # get the first batch
-    input_ids_, attention_mask_, target_ids_, mask_p_ = get_batch(train_dataloader, args.device, global_step)
+    input_ids_, attention_mask_, target_ids_, mask_p_ = get_batch(train_data_iter, args.device, global_step)
 
     # iterate over the steps
     for local_step in tqdm(range(num_steps), desc="Train iteration", initial=global_step, total=args.max_steps, disable=not is_main_process()):
@@ -244,7 +244,7 @@ def training_epoch(model, ema_model, train_dataloader, valid_dataloader, optimiz
 
         # get the next batch
         if local_step < num_steps - 1:
-            input_ids_, attention_mask_, target_ids_, mask_p_ = get_batch(train_dataloader, args.device, global_step)
+            input_ids_, attention_mask_, target_ids_, mask_p_ = get_batch(train_data_iter, args.device, global_step)
 
         # calculate the weight for the loss (either token-weighted or not)
         if args.token_weighted_loss:

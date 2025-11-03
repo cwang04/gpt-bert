@@ -2,8 +2,8 @@ import os
 import torch
 from utils import is_main_process
 
-
-if int(os.environ["SLURM_PROCID"]) == 0:
+if int(os.environ.get("SLURM_PROCID", "0")) == 0:
+#if int(os.environ["SLURM_PROCID"]) == 0:
     import wandb
 
 
