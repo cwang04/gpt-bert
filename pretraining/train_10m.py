@@ -128,6 +128,38 @@ def load_config(args):
         setattr(args, k, v)
     return args
 
+def load_config_wandb_sweep(args):
+    if args.config_file is not None and os.path.exists(args.config_file):
+        with open(args.config_file, "r") as f:
+            json_cfg = json.load(f)
+    else:
+        json_cfg = {}
+
+    merged = vars(args).copy()
+    merged.update(json_cfg)
+
+    try:
+        if wandb.run is not None and wandb.config is not None:
+            wb_cfg = dict(wandb.config)
+            merged.update(wb_cfg)   # sweep params override JSON + argparse
+    except Exception:
+        pass
+
+    if "hidden_size" in merged and "num_attention_heads" not in merged:
+        merged["num_attention_heads"] = max(1, merged["hidden_size"] // 64)
+
+    for k, v in merged.items():
+        setattr(args, k, v)
+        
+    try:
+        if wandb.run is not None:
+            wandb.config.update(merged, allow_val_change=True)
+    except Exception:
+        pass
+
+    return args
+
+
 
 def prepare_model_and_optimizer(args):
     args = load_config(args)
