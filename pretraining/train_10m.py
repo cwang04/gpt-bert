@@ -150,7 +150,7 @@ def load_config_wandb_sweep(args):
 
     for k, v in merged.items():
         setattr(args, k, v)
-        
+
     try:
         if wandb.run is not None:
             wandb.config.update(merged, allow_val_change=True)
@@ -245,6 +245,10 @@ def get_batch(dataloader, device, global_step):
     if hasattr(dataloader._dataset, "set_global_step"):
         dataloader._dataset.set_global_step(global_step) # added if to handle when validation set was added
     batch = next(dataloader)
+
+    assert isinstance(batch, (list, tuple)) and len(batch) == 4, \
+        f"Batch must be (input_ids, target_ids, attention_mask, mask_p); got {type(batch)} len={len(batch)}"
+
     input_ids, target_ids, attention_mask, mask_p = [t.pin_memory().to(device, non_blocking=True) for t in batch]
     input_ids, target_ids = input_ids.t(), target_ids.t()
     mask_p = mask_p.mean()
