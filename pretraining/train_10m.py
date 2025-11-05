@@ -239,7 +239,7 @@ def training_epoch(model, ema_model, train_dataloader, valid_dataloader, optimiz
         input_ids, attention_mask, target_ids, mask_p = input_ids_, attention_mask_, target_ids_, mask_p_
 
         # forward pass, do a more detailed check of the model every 100 steps
-        with torch.cuda.amp.autocast(args.mixed_precision, dtype=torch.bfloat16):
+        with torch.cuda.amp.autocast(args.mixed_precision, dtype=torch.float16):
             with ModelLogger(enable=global_step % 100 == 0, module=model):
                 loss, accuracy, z_loss, num_tokens = model(input_ids, attention_mask, target_ids)
 
@@ -353,7 +353,7 @@ def validation_epoch(model, valid_dataloader, epoch, args, commit=False):
     input_ids, attention_mask, target_ids, _ = get_batch(valid_dataloader, args.device, 0)
     for local_step in tqdm(range(args.validation_steps), desc="Valid iteration", disable=not is_main_process()):
 
-        with torch.cuda.amp.autocast(args.mixed_precision, dtype=torch.bfloat16):
+        with torch.cuda.amp.autocast(args.mixed_precision, dtype=torch.float16):
             loss, accuracy, _, num_tokens = model(input_ids, attention_mask, target_ids)
 
         if local_step < args.validation_steps - 1:

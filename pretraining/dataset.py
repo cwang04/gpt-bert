@@ -21,7 +21,7 @@ class SpanMaskingStrategy:
         indices = torch.zeros(total_length, dtype=torch.int)
         indices[cumsum - span_lengths] = torch.arange(length, dtype=torch.int)
         indices = torch.cummax(indices, dim=0)[0]
-        indices = indices[:length]
+        indices = indices[:length].long()
 
         max_index = indices[-1].item()
         span_random_numbers_1, span_random_numbers_2 = torch.rand([(max_index + 1) * 2]).chunk(2)
