@@ -1,0 +1,50 @@
+project: gpt-bert-sweeps
+entity: lemn-lab  
+program: pretraining/train_10m.py
+
+command:
+  - ${env}
+  - python
+  - pretraining/train_10m.py
+  - --train_path=/workspace/gpt-bert/data/train_10m_tokenized.bin
+  - --valid_path=/workspace/gpt-bert/data/val_10m_tokenized.bin
+  - --output_dir=/workspace/gpt-bert/model_checkpoints
+  - --name=causal_only_10M
+  - --hybrid_numerator=0
+  - --hybrid_denominator=1
+  - --seq_length=128
+  - --local_batch_size=16
+  - --global_batch_size=16
+  - --learning_rate=1e-6
+  - --max_steps=100000
+  - --ema_decay=0.999
+  - --validate_every=5000
+  - --save_every=5000
+  - --seed=42
+  - --optimizer=lamb
+  - --weight_decay=0.1
+  - --warmup_proportion=0.016
+  - --cooldown_proportion=0.016
+  - --mask_p_start=0.3
+  - --mask_p_end=0.15
+  - --mask_random_p=0.1
+  - --mask_keep_p=0.1
+  - --mixed_precision
+
+
+method: bayes  
+metric:
+  name: validation/loss
+  goal: minimize
+
+parameters:
+  hidden_size: 
+    values: [384, 512, 768]
+  intermediate_size:  
+    values: [1280, 1920, 2560]
+  attention_probs_dropout_prob:
+    values: [0.0, 0.05, 0.1, 0.15, 0.2]
+  hidden_dropout_prob:
+    values: [0.0, 0.05, 0.1, 0.15, 0.2]
+  position_bucket_size: 
+    values: [32, 64]

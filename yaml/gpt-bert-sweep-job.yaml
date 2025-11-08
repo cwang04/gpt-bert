@@ -1,0 +1,73 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gpt-bert-sweep-job
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gpt-bert
+        model: causal-only
+    spec:
+      restartPolicy: Never
+      
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-A10
+
+      containers:
+      - name: trainer
+        image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+        workingDir: /workspace
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            pip install -q tokenizers tqdm wandb
+            
+            export SLURM_PROCID=0
+            export SLURM_LOCALID=0
+            export SLURM_GPUS_ON_NODE=1
+            export WORLD_SIZE=1
+            export MASTER_ADDR=localhost
+            export MASTER_PORT=9999
+            export RANK=0
+            export LOCAL_RANK=0
+            
+            cd /workspace/gpt-bert
+
+            wandb agent lemn-lab/gpt-bert-sweeps/dezwzdu5
+            
+            
+        
+        resources:
+          requests:
+            memory: "32Gi"
+            cpu: "8"
+            nvidia.com/gpu: "1"
+          limits:
+            memory: "32Gi"
+            cpu: "8"
+            nvidia.com/gpu: "1"
+        
+        volumeMounts:
+        - name: colin-gpt-bert-pvc
+          mountPath: /workspace
+        
+        env:
+        - name: WANDB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wandb-api-key
+              key: key
+      
+      volumes:
+      - name: colin-gpt-bert-pvc
+        persistentVolumeClaim:
+          claimName: colin-gpt-bert-pvc

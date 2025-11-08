@@ -1,3 +1,11 @@
+<h1>DSC Capstone Quarter 1 Checkpoint</h1>
+<p>
+This is a fork of the repository for an entry to the BabyLM challenge that combined GPT and BERT language models.
+
+The instructions in the README.md and original code had some issues so this fork has edits that correct these changes as well as added the 10M token data set for training. This also contains the .yaml files I used to create a pvc as well as pulling the repo, as well as the code to run the job to train the GPT-BERT model with hyperparameter sweep. The code for this model was not written by me, but is the codebase that I have been working with and has the necessary changes I made to get the code to work for me. The .yaml files are in the yaml folder.
+</p>
+
+
 <h2 align="center"><b><h3>GPT or BERT: why not both?</h3></b></h2><br>
 
 
