@@ -11,7 +11,7 @@ spec:
         model: causal-only
     spec:
       restartPolicy: Never
-      
+
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -20,7 +20,7 @@ spec:
               - key: nvidia.com/gpu.product
                 operator: In
                 values:
-                - NVIDIA-A10
+                  - NVIDIA-A10
 
       containers:
       - name: trainer
@@ -30,6 +30,7 @@ spec:
         args:
           - |
             pip install -q tokenizers tqdm wandb
+
             
             export SLURM_PROCID=0
             export SLURM_LOCALID=0
@@ -39,34 +40,40 @@ spec:
             export MASTER_PORT=9999
             export RANK=0
             export LOCAL_RANK=0
-            
-            cd /workspace/gpt-bert
 
+            cd /workspace
+            echo "Contents of /workspace:"
+            ls
+
+            cd /workspace/gpt-bert || { echo "gpt-bert repo not found"; exit 1; }
+
+         
+            python -c "import torch; print('CUDA available:', torch.cuda.is_available(), 'devices:', torch.cuda.device_count())"
+
+           
             wandb agent lemn-lab/gpt-bert-sweeps/6f4pt58g
-            
-            
-        
+
         resources:
           requests:
             memory: "32Gi"
             cpu: "8"
-            nvidia.com/gpu: "4"
+            nvidia.com/gpu: "1"
           limits:
             memory: "32Gi"
             cpu: "8"
-            nvidia.com/gpu: "4"
-        
+            nvidia.com/gpu: "1"
+
         volumeMounts:
         - name: bert-pvc-sweep
           mountPath: /workspace
-        
+
         env:
         - name: WANDB_API_KEY
           valueFrom:
             secretKeyRef:
               name: wandb-api-key
               key: key
-      
+
       volumes:
       - name: bert-pvc-sweep
         persistentVolumeClaim:
