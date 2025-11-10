@@ -50,11 +50,11 @@ spec:
           requests:
             memory: "32Gi"
             cpu: "8"
-            nvidia.com/gpu: "1"
+            nvidia.com/gpu: "4"
           limits:
             memory: "32Gi"
             cpu: "8"
-            nvidia.com/gpu: "1"
+            nvidia.com/gpu: "4"
         
         volumeMounts:
         - name: colin-gpt-bert-pvc
