@@ -1,0 +1,97 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gpt-bert-train-job
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gpt-bert
+        model: hybrid-mlm-clm
+    spec:
+      restartPolicy: Never
+      
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-A10
+
+      containers:
+      - name: trainer
+        image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+        workingDir: /workspace
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            pip install -q tokenizers tqdm wandb
+                
+            cd /workspace/gpt-bert
+
+            export MASTER_ADDR=localhost
+            export MASTER_PORT=9999
+
+            torchrun --standalone --nproc_per_node=4 \
+                  ./pretraining/train_10m.py \
+                  --train_path=./data/train_10M_tokenized.bin \
+                  --valid_path=./data/valid_10M_tokenized.bin \
+                  --output_dir=./model_checkpoints \
+                  --name=hybrid_mlm_clm_10M \
+                  --seq_length=128 \
+                  --local_batch_size=16 \
+                  --global_batch_size=64 \
+                  --learning_rate=1e-6 \
+                  --max_steps=100000 \
+                  --ema_decay=0.999 \
+                  --validate_every=5000 \
+                  --save_every=5000 \
+                  --seed=42 \
+                  --optimizer=lamb \
+                  --weight_decay=0.1 \
+                  --warmup_proportion=0.016 \
+                  --cooldown_proportion=0.016 \
+                  --mask_p_start=0.3 \
+                  --mask_p_end=0.15 \
+                  --mask_random_p=0.1 \
+                  --mask_keep_p=0.1 \
+                  --mixed_precision \
+                  --hybrid_numerator=1 \
+                  --hybrid_denominator=2
+              '
+            
+        
+        resources:
+          requests:
+            memory: "32Gi"
+            cpu: "4"
+            nvidia.com/gpu: "4"
+          limits:
+            memory: "32Gi"
+            cpu: "4"
+            nvidia.com/gpu: "4"
+        
+        volumeMounts:
+        - name: colin-gpt-bert-pvc
+          mountPath: /workspace
+        - name: dshm
+          mountPath: /dev/shm
+        
+        env:
+        - name: WANDB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wandb-api-key
+              key: key
+      
+      volumes:
+      - name: colin-gpt-bert-pvc
+        persistentVolumeClaim:
+          claimName: colin-gpt-bert-pvc
+      - name: dshm
+        emptyDir:
+          medium: Memory
