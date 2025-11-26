@@ -24,7 +24,7 @@ from dataset import MaskedDataset, CausalDataset, ValidationDataset
 from model_logging import ModelLogger
 
 
-if int(os.environ["RANK"]) == 0:
+if int(os.environ["SLURM_PROCID"]) == 0:
     import wandb
 
 
@@ -80,8 +80,8 @@ def setup_training(args, tokenizer):
     args.n_gpu = torch.cuda.device_count()
 
     args.world_size = int(os.environ["WORLD_SIZE"])
-    args.rank = int(os.environ["RANK"])
-    args.gpus_per_node = int(os.environ["LOCAL_WORLD_SIZE"])
+    args.rank = int(os.environ["SLURM_PROCID"])
+    args.gpus_per_node = int(os.environ["SLURM_GPUS_ON_NODE"])
     assert args.gpus_per_node == torch.cuda.device_count()
     print(f"Hello from rank {args.rank} of {args.world_size} on {gethostname()} where there are {args.gpus_per_node} allocated GPUs per node.", flush=True)
 

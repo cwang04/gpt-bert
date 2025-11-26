@@ -1,50 +1,81 @@
-project: gpt-bert-sweeps
-entity: lemn-lab  
-program: pretraining/train_10m.py
+method: bayes
+metric:
+  name: validation/perplexity      # change if your code logs a different key
+  goal: minimize
 
 command:
   - ${env}
-  - python
-  - pretraining/train_10m.py
-  - --train_path=/workspace/gpt-bert/data/train_10m_tokenized.bin
-  - --valid_path=/workspace/gpt-bert/data/val_10m_tokenized.bin
-  - --output_dir=/workspace/gpt-bert/model_checkpoints
-  - --name=causal_only_10M
-  - --hybrid_numerator=0
-  - --hybrid_denominator=1
-  - --seq_length=128
-  - --local_batch_size=16
-  - --global_batch_size=16
-  - --learning_rate=1e-6
-  - --max_steps=100000
-  - --ema_decay=0.999
-  - --validate_every=5000
-  - --save_every=5000
-  - --seed=42
-  - --optimizer=lamb
-  - --weight_decay=0.1
-  - --warmup_proportion=0.016
-  - --cooldown_proportion=0.016
-  - --mask_p_start=0.3
-  - --mask_p_end=0.15
-  - --mask_random_p=0.1
-  - --mask_keep_p=0.1
-  - --mixed_precision
+  - ${interpreter}
+  - -m
+  - torch.distributed.run
+  - --standalone
+  - --nproc_per_node=4
+  - ${program}
+  - ${args}
 
-
-method: bayes  
-metric:
-  name: validation/loss
-  goal: minimize
+program: pretraining/train_10m.py
 
 parameters:
-  hidden_size: 
-    values: [384, 512, 768]
-  intermediate_size:  
-    values: [1280, 1920, 2560]
-  attention_probs_dropout_prob:
-    values: [0.0, 0.05, 0.1, 0.15, 0.2]
-  hidden_dropout_prob:
-    values: [0.0, 0.05, 0.1, 0.15, 0.2]
-  position_bucket_size: 
-    values: [32, 64]
+  # ---- fixed paths / constants from your run ----
+  train_path:        {value: ./data/train_10M_tokenized.bin}
+  valid_path:        {value: ./data/valid_10M_tokenized.bin}
+  tokenizer_path:    {value: ./tokenizers/tokenizer_10M.json}
+  config_file:       {value: ./configs/small.json}
+  output_dir:        {value: ./model_checkpoints}
+  name:              {value: hybrid_mlm_clm_10M}
+  optimizer:         {value: lamb}
+  seed:              {value: 42}
+  ema_decay:         {value: 0.999}
+  validate_every:    {value: 2500}
+  save_every:        {value: 2500}
+  local_batch_size:  {value: 4}
+  hybrid_numerator: {value: 3}
+  hybrid_denominator: {value: 4}
+  max_steps: {value: 20000}
+  seq_length: {value: 128}
+
+
+  # ---- sweep these (most impact on perplexity) ----
+  learning_rate:
+    distribution: uniform
+    min: 0.00001
+    max: 0.0005 #from default adam lr
+
+  global_batch_size:
+    distribution: categorical
+    values: [16, 32] 
+
+  weight_decay:
+    distribution: uniform
+    min: 0.01
+    max: 0.10
+
+  warmup_proportion:
+    distribution: uniform
+    min: 0.04
+    max: 0.10
+
+  cooldown_proportion:
+    distribution: uniform
+    min: 0.04
+    max: 0.05
+
+  mask_p_start:
+    distribution: uniform
+    min: 0.2
+    max: 0.4
+
+  mask_p_end:
+    distribution: uniform
+    min: 0.1
+    max: 0.2
+
+  mask_random_p:
+    distribution: uniform
+    min: 0.05
+    max: 0.2
+
+  mask_keep_p:
+    distribution: uniform
+    min: 0.1
+    max: 0.2

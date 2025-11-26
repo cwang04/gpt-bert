@@ -1,0 +1,52 @@
+wandb_version: 1
+
+config_file:
+  value: ./configs/small.json
+cooldown_proportion:
+  value: 0.09706384540480524
+ema_decay:
+  value: 0.999
+global_batch_size:
+  value: 64
+hybrid_denominator:
+  value: 4
+hybrid_numerator:
+  value: 1
+learning_rate:
+  value: 0.0016081012980291864
+local_batch_size:
+  value: 16
+mask_keep_p:
+  value: 0.0947834035755948
+mask_p_end:
+  value: 0.07492936705601874
+mask_p_start:
+  value: 0.25173574864470116
+mask_random_p:
+  value: 0.057233129245721714
+mixed_precision:
+  value: true
+name:
+  value: hybrid_mlm_clm_10M
+optimizer:
+  value: lamb
+output_dir:
+  value: ./model_checkpoints
+save_every:
+  value: 5000
+seed:
+  value: 42
+seq_length:
+  value: 256
+tokenizer_path:
+  value: ./tokenizers/tokenizer_10M.json
+train_path:
+  value: ./data/train_10M_tokenized.bin
+valid_path:
+  value: ./data/valid_10M_tokenized.bin
+validate_every:
+  value: 5000
+warmup_proportion:
+  value: 0.09819608761278883
+weight_decay:
+  value: 0.005505513962678197

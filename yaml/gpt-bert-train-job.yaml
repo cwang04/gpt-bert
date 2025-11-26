@@ -40,6 +40,8 @@ spec:
                   ./pretraining/train_10m.py \
                   --train_path=./data/train_10M_tokenized.bin \
                   --valid_path=./data/valid_10M_tokenized.bin \
+                  --tokenizer_path=./tokenizers/tokenizer_10M.json \
+                  --config_file=./configs/small.json \
                   --output_dir=./model_checkpoints \
                   --name=hybrid_mlm_clm_10M \
                   --seq_length=128 \
@@ -60,9 +62,8 @@ spec:
                   --mask_random_p=0.1 \
                   --mask_keep_p=0.1 \
                   --mixed_precision \
-                  --hybrid_numerator=1 \
-                  --hybrid_denominator=2
-              '
+                  --hybrid_numerator=3 \
+                  --hybrid_denominator=4
             
         
         resources:

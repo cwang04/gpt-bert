@@ -30,19 +30,13 @@ spec:
         args:
           - |
             pip install -q tokenizers tqdm wandb
-            
-            export SLURM_PROCID=0
-            export SLURM_LOCALID=0
-            export SLURM_GPUS_ON_NODE=1
-            export WORLD_SIZE=1
+
             export MASTER_ADDR=localhost
             export MASTER_PORT=9999
-            export RANK=0
-            export LOCAL_RANK=0
             
             cd /workspace/gpt-bert
 
-            wandb agent lemn-lab/gpt-bert-sweeps/dezwzdu5
+            wandb agent lemn-lab/gpt-bert-sweeps/y24byhs8
             
             
         
