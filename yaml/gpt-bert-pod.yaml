@@ -27,7 +27,6 @@ spec:
       set -xe
       cd /workspace
 
-      # clone once if it's not already there
       if [ ! -d gpt-bert ]; then
         git clone https://github.com/cwang04/gpt-bert.git
       fi

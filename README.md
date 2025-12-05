@@ -5,6 +5,29 @@ This is a fork of the repository for an entry to the BabyLM challenge that combi
 The instructions in the README.md and original code had some issues so this fork has edits that correct these changes as well as added the 10M token data set for training. This also contains the .yaml files I used to create a pvc as well as pulling the repo, as well as the code to run the job to train the GPT-BERT model with hyperparameter sweep. The code for this model was not written by me, but is the codebase that I have been working with and has the necessary changes I made to get the code to work for me. The .yaml files are in the yaml folder.
 </p>
 
+<h2 align="center"><b><h3> Steps to follow to replicate hyperparameter sweeps</h3></b></h2><br>
+
+**Need to have kubectl installed, as well as access to the nautilus cluster in order to properly run these .yaml files**
+
+1. Make your own pvc, either run your own script or run the script in /yaml called `gpt-bert-pvc.yaml`, navigate to `/yaml` and then run the following command: `kubectl apply -f gpt-bert-pvc.yaml`
+2. Wait for the pvc, to initialize and then run the following command, make sure to alter the file if you changed the pvc name, `kubectl apply -f gpt-bert-sweep-job.yaml`, even though `requirements.txt` exists, the .yaml will already install the packages, so that you don't need to run `pip install requirements.txt`.
+    1. In order for this to work properly, you need access to the wandb sweep job. If you don't have access to it, you need to create your own wandb sweep job.
+    2. Once you create the wandb hyper parameter sweep, make sure to update the sweep so that `sweep.yaml` is the .yaml that is attached to the sweep job.
+    3. Make sure that you edit `gpt-bert-sweep-job.yaml` line 39 so that the call for the wandb agent sweep matches with wandb suggests for you to use.
+    4. **(Optional)** if you feel it is necessary, you can alter the parameters in `sweep.yaml` to change the hyperparameter sweep conditions.
+    5. When substeps 2.1-3 are completed, `kubectl apply -f gpt-bert-sweep-job.yaml` should run properly, continue to step 3
+3. After waiting for the sweep job to launch, check your wandb. If done properly, you should start to see sweep jobs being run and the logs of the validation perplexity as well as which hyperparameters are being used.
+4. Let this sweep job run in the background for as long as desired (you do have to consider the memory allocated to the pvc, if run for to long too much will be stored in `/wandb` and will run out of disk space). You can then use wandb to find which hyperparametersr returned the lowest perplexity and move on with training a model under these optimal parameters.
+
+
+
+
+## The following is the original instructions from the repo, not realted to Q1 code, all of the steps have been integrated into yaml files already 
+<br>
+
+
+
+
 
 <h2 align="center"><b><h3>GPT or BERT: why not both?</h3></b></h2><br>
 
